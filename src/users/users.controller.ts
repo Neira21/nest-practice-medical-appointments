@@ -26,12 +26,8 @@ export class UsersController {
   }
 
   @Get()
-  async findAll() {
-    const users = await this.usersService.findAll();
-    if (users.length === 0 || !users) {
-      return { message: 'No hay usuarios registrados', data: [] };
-    }
-    return { message: 'Usuarios encontrados', data: users };
+  findAll() {
+    return this.usersService.findAll();
   }
 
   @Get(':id')

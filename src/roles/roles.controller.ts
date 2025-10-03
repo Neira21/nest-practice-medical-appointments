@@ -21,14 +21,8 @@ export class RolesController {
   }
 
   @Get()
-  async findAll() {
-    const result = (await this.rolesService.findAll()) as any[];
-
-    if (!result || result.length === 0) {
-      return { message: 'No hay roles agregados', data: [] };
-    }
-    // Si la respuesta es un objeto individual
-    return { message: 'Roles Obtenidos', data: result };
+  findAll() {
+    return this.rolesService.findAll();
   }
 
   @Get(':id')
