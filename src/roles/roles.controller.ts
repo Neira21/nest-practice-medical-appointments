@@ -3,9 +3,9 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
@@ -15,14 +15,20 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
-  // @Post()
-  // create(@Body() createRoleDto: CreateRoleDto) {
-  //   return this.rolesService.create(createRoleDto);
-  // }
+  @Post()
+  create(@Body() createRoleDto: CreateRoleDto) {
+    return this.rolesService.create(createRoleDto);
+  }
 
   @Get()
-  findAll() {
-    return this.rolesService.findAll();
+  async findAll() {
+    const result = (await this.rolesService.findAll()) as any[];
+
+    if (!result || result.length === 0) {
+      return { message: 'No hay roles agregados', data: [] };
+    }
+    // Si la respuesta es un objeto individual
+    return { message: 'Roles Obtenidos', data: result };
   }
 
   @Get(':id')
@@ -30,10 +36,10 @@ export class RolesController {
     return this.rolesService.findOne(+id);
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
-  //   return this.rolesService.update(+id, updateRoleDto);
-  // }
+  @Put(':id')
+  update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
+    return this.rolesService.update(+id, updateRoleDto);
+  }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
