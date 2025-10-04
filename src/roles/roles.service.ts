@@ -31,6 +31,7 @@ export class RolesService {
     }
     return { message: 'Rol encontrado', data: role };
   }
+
   async update(id: number, updateRoleDto: UpdateRoleDto) {
     try {
       const role = await this.prisma.role.update({

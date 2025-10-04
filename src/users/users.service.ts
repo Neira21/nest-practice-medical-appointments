@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma.service';
 import { handlePrismaError } from '../utils/PrismaErrors';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -10,9 +11,25 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     try {
-      return await this.prisma.user.create({
-        data: createUserDto,
+      const salts = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(createUserDto.password, salts);
+
+      const newUser = await this.prisma.user.create({
+        data: {
+          username: createUserDto.username,
+          password: hashedPassword,
+          email: createUserDto.email,
+          roleId: createUserDto.roleId || 2, // Asignar roleId 2 por defecto si no se proporciona
+        },
       });
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...userWithoutPassword } = newUser;
+
+      return {
+        message: 'Usuario creado exitosamente',
+        data: userWithoutPassword,
+      };
     } catch (error) {
       handlePrismaError(error);
     }
@@ -41,6 +58,33 @@ export class UsersService {
       return { message: 'Usuario encontrado', data: user };
     } catch (error) {
       console.log('Error al buscar usuario:', error);
+    }
+  }
+
+  async findOneByName(name: string) {
+    try {
+      const username = name.trim();
+      console.log('Searching for username:', username); // ← Debug
+
+      const user = await this.prisma.user.findUnique({
+        where: { username },
+        include: {
+          role: true, // Incluir información del rol
+        },
+      });
+
+      console.log('Found user in DB:', user); // ← Debug
+
+      if (user) {
+        return { message: 'Usuario encontrado', data: user };
+      } else {
+        return { message: 'Usuario no encontrado', data: null };
+      }
+    } catch (error) {
+      console.log('Error finding user by name:', error);
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(error.message);
+      }
     }
   }
 
