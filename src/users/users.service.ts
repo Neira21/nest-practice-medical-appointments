@@ -64,7 +64,6 @@ export class UsersService {
   async findOneByName(name: string) {
     try {
       const username = name.trim();
-      console.log('Searching for username:', username); // ← Debug
 
       const user = await this.prisma.user.findUnique({
         where: { username },
@@ -72,8 +71,6 @@ export class UsersService {
           role: true, // Incluir información del rol
         },
       });
-
-      console.log('Found user in DB:', user); // ← Debug
 
       if (user) {
         return { message: 'Usuario encontrado', data: user };

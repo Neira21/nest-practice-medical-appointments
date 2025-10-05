@@ -25,10 +25,11 @@ export class AuthService {
 
     // Verificar contraseña
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
     if (user && isPasswordValid) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: userPassword, ...result } = user;
-      return result;
+      return result as AuthUser;
     }
 
     return null;
@@ -36,10 +37,10 @@ export class AuthService {
 
   login(user: AuthUser) {
     const payload = {
+      sub: user.id,
       username: user.username,
       email: user.email,
-      sub: user.id,
-      roleId: user.roleId,
+      role: user.role?.name,
     };
     return {
       message: 'Login exitoso',
@@ -47,8 +48,7 @@ export class AuthService {
       user: {
         id: user.id,
         username: user.username,
-        email: user.email,
-        roleId: user.roleId,
+        role: user.role?.name,
       },
     };
   }
