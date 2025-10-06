@@ -12,6 +12,8 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthUser } from './interfaces/auth-user.interface';
+import { Roles } from './decorators/roles.decorator';
+import { RolesGuard } from './guards/roles.guard';
 
 interface RequestWithUser extends Request {
   user: AuthUser;
@@ -35,7 +37,8 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('Admin')
   @Get('/profile')
   async getProfile(@Request() req: RequestWithUser) {
     return await this.usersService.findOne(req.user.id);

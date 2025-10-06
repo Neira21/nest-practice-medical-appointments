@@ -51,11 +51,23 @@ export class UsersService {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id },
+        include: { role: true },
       });
       if (!user) {
         return { message: 'Usuario no encontrado', data: null };
       }
-      return { message: 'Usuario encontrado', data: user };
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, role, username, email } = user;
+      const roleName = role?.name ?? role?.name ?? null;
+
+      const userWithoutPassword = {
+        id,
+        nombre: username,
+        email,
+        rol: roleName,
+      };
+
+      return { message: 'Perfil del usuario', data: userWithoutPassword };
     } catch (error) {
       console.log('Error al buscar usuario:', error);
     }

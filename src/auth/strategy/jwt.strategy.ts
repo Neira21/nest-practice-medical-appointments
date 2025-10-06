@@ -3,6 +3,12 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { SECRET } from '../../../constants/jwt-key';
 
+interface JwtPayload {
+  sub: number;
+  username: string;
+  role: string;
+}
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
@@ -13,14 +19,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload: any) {
+  validate(payload: JwtPayload) {
     return {
-      /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment*/
-      userId: payload.sub,
-      /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment*/
+      id: payload.sub,
       username: payload.username,
-      /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment*/
-      roleId: payload.roleId,
+      email: payload.username,
+      role: payload.role,
     };
   }
 }
