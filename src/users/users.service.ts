@@ -37,7 +37,18 @@ export class UsersService {
 
   async findAll() {
     try {
-      const users = await this.prisma.user.findMany();
+      const users = await this.prisma.user.findMany({
+        select: {
+          username: true,
+          email: true,
+          password: false,
+          role: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
       if (!users || users.length === 0) {
         return { message: 'No hay usuarios registrados', data: [] };
       }

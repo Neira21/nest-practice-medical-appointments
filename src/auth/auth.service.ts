@@ -1,8 +1,17 @@
 import { UsersService } from './../users/users.service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { AuthUser } from './interfaces/auth-user.interface';
+import { IsNotEmpty, IsString } from 'class-validator';
+import { PayloadFull } from './payload';
+import { SECRET } from '../../constants/jwt-key';
+
+export default class RefreshTokenBodyDTO {
+  @IsString()
+  @IsNotEmpty()
+  refreshToken: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -10,6 +19,7 @@ export class AuthService {
     private userService: UsersService,
     private jwtService: JwtService,
   ) {}
+
   async validateUser(
     username: string,
     password: string,
@@ -27,9 +37,13 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (user && isPasswordValid) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: userPassword, ...result } = user;
-      return result as AuthUser;
+      const object = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role.name,
+      };
+      return object;
     }
 
     return null;
@@ -40,15 +54,37 @@ export class AuthService {
       sub: user.id,
       username: user.username,
       email: user.email,
-      role: user.role?.name,
+      role: user.role,
     };
     return {
       message: 'Login exitoso',
       access_token: this.jwtService.sign(payload),
       user: {
         username: user.username,
-        role: user.role?.name,
+        role: user.role,
       },
     };
+  }
+
+  async refreshToken(body: RefreshTokenBodyDTO) {
+    try {
+      const payload: PayloadFull = await this.jwtService.verifyAsync(
+        body.refreshToken,
+      );
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { iat, exp, ...result } = payload;
+      const refreshToken = this.jwtService.signAsync(result, {
+        secret: SECRET,
+        expiresIn: '2hrs',
+      });
+      return {
+        refreshToken,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(error.message);
+      }
+    }
   }
 }

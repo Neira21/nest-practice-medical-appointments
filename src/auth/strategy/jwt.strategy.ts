@@ -6,6 +6,7 @@ import { SECRET } from '../../../constants/jwt-key';
 interface JwtPayload {
   sub: number;
   username: string;
+  email: string;
   role: string;
 }
 
@@ -23,7 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return {
       id: payload.sub,
       username: payload.username,
-      email: payload.username,
+      email: payload.email,
       role: payload.role,
     };
   }
